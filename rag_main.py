@@ -1,6 +1,9 @@
 # rag_main.py
 
 from drive_processor import GoogleDriveProcessor
+from text_processor import TextProcessor
+from pathlib import Path
+
 
 def main():
     # 1️⃣ Set your Google Drive folder ID here
@@ -15,14 +18,24 @@ def main():
     if not new_files:
         print("No new or updated files found.")
     else:
-        print(f"Processing {len(new_files)} files...")
+        print(f"Processing {len(new_files)} new or updated files...")
 
-        # TODO: For each new file:
-        for file_path in new_files:
-            print(f"Would process: {file_path}")
-            # 👉 Add your chunking, embedding & upsert logic here
+        # 3️⃣ Initialize text processor
+        text_processor = TextProcessor()
 
-    print("RAG pipeline step done.")
+        # 4️⃣ For each new file → extract text
+        for file_path_str in new_files:
+            file_path = Path(file_path_str)
+            extracted_text = text_processor.extract_text(file_path)
+
+            if extracted_text.strip():
+                print(f"✅ Extracted {len(extracted_text)} characters from: {file_path.name}")
+                # 👉 Next: pass to chunker and embeddings here
+            else:
+                print(f"⚠️ No extractable text found in: {file_path.name}")
+
+    print("RAG pipeline extraction step done.")
+
 
 if __name__ == "__main__":
     main()
