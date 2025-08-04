@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG System Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            border-bottom: 2px solid #007acc;
+            padding-bottom: 10px;
+        }
+        .diagram-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .component-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .tech-badge {
+            background: #007acc;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RAG System Architecture</h1>
+        
+        <div class="diagram-container">
+            <h2>High-Level Architecture</h2>
+            <div class="mermaid">
+                graph TB
+                    subgraph "User Interface"
+                        UI[Gradio Chat UI<br/>rag_chat_ui.py]
+                    end
+                    
+                    subgraph "Core Engine"
+                        AGENT[RAG Agent<br/>rag_agent.py]
+                        MAIN[RAG Main<br/>rag_main.py]
+                    end
+                    
+                    subgraph "Processing Pipeline"
+                        DRIVE[Drive Processor<br/>drive_processor.py]
+                        PROC[Text Processor<br/>text_processor.py]
+                        CHUNK[Sentence Chunker<br/>sentence_chunker.py]
+                        EMBED[Embeddings Manager<br/>embeddings_manager.py]
+                    end
+                    
+                    subgraph "Storage"
+                        FAISS[FAISS Vector Store<br/>faiss_index/]
+                        JSON[Processed Files<br/>processed_files.json]
+                    end
+                    
+                    subgraph "External Services"
+                        GD[Google Drive API]
+                        OLLAMA[Ollama LLM<br/>localhost:11434]
+                        HF[HuggingFace<br/>all-MiniLM-L6-v2]
+                    end
+                    
+                    GD --> DRIVE
+                    DRIVE --> PROC
+                    PROC --> CHUNK
+                    CHUNK --> EMBED
+                    EMBED --> FAISS
+                    
+                    UI --> AGENT
+                    AGENT --> FAISS
+                    AGENT --> OLLAMA
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <h2>Data Flow</h2>
+            <div class="mermaid">
+                flowchart TD
+                    A[Google Drive Folder] -->|Sync| B[Download Files]
+                    B -->|Process| C[Extract Text]
+                    C -->|Chunk| D[Sentence Chunks]
+                    D -->|Embed| E[Vector Embeddings]
+                    E -->|Store| F[FAISS Index]
+                    
+                    G[User Query] -->|Embed| H[Query Vector]
+                    H -->|Search| F
+                    F -->|Retrieve| I[Relevant Chunks]
+                    I -->|Context| J[LLM Response]
+                    J -->|Display| K[User Interface]
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <h2>Component Details</h2>
+            <div class="component-grid">
+                <div class="component-card">
+                    <h3>rag_main.py</h3>
+                    <p>Orchestrates the entire data pipeline from Google Drive sync to embedding storage</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Python</span>
+                        <span class="tech-badge">Google Drive API</span>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <h3>rag_agent.py</h3>
+                    <p>Core RAG engine handling query processing and response generation</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">LangChain</span>
+                        <span class="tech-badge">FAISS</span>
+                        <span class="tech-badge">Ollama</span>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <h3>embeddings_manager.py</h3>
+                    <p>Manages vector embeddings and FAISS index operations</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Sentence Transformers</span>
+                        <span class="tech-badge">FAISS</span>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <h3>text_processor.py</h3>
+                    <p>Extracts text from PDF, DOCX, and TXT files</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">PyMuPDF</span>
+                        <span class="tech-badge">python-docx</span>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <h3>sentence_chunker.py</h3>
+                    <p>Intelligently chunks text by sentences for optimal embedding</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">NLTK</span>
+                        <span class="tech-badge">500 char chunks</span>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <h3>rag_chat_ui.py</h3>
+                    <p>Gradio-based chat interface for user interaction</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Gradio</span>
+                        <span class="tech-badge">Real-time</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <h2>Sequence Diagram - Query Processing</h2>
+            <div class="mermaid">
+                sequenceDiagram
+                    participant User
+                    participant UI as rag_chat_ui.py
+                    participant Agent as rag_agent.py
+                    participant FAISS as FAISS Store
+                    participant Ollama as Ollama LLM
+                    
+                    User->>UI: Enter query
+                    UI->>Agent: ask(query)
+                    Agent->>Agent: retrieve(query)
+                    Agent->>FAISS: similarity_search(query, k=3)
+                    FAISS-->>Agent: Return top 3 chunks
+                    Agent->>Agent: build_prompt(query, chunks)
+                    Agent->>Ollama: POST /api/generate
+                    Ollama-->>Agent: Generated response
+                    Agent-->>UI: Return answer
+                    UI-->>User: Display response
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <h2>Technology Stack</h2>
+            <div class="tech-stack">
+                <span class="tech-badge">Python 3.8+</span>
+                <span class="tech-badge">LangChain</span>
+                <span class="tech-badge">FAISS</span>
+                <span class="tech-badge">Gradio</span>
+                <span class="tech-badge">Google Drive API</span>
+                <span class="tech-badge">Ollama</span>
+                <span class="tech-badge">HuggingFace</span>
+                <span class="tech-badge">PyMuPDF</span>
+                <span class="tech-badge">python-docx</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+</body>
+</html>
