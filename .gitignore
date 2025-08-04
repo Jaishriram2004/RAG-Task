@@ -208,3 +208,5 @@ __marimo__/
 client_secrets.json
 token.json
 processed_files.json
+faiss_index/index.faiss
+faiss_index/index.pkl

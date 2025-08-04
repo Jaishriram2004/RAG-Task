@@ -3,6 +3,7 @@
 from drive_processor import GoogleDriveProcessor
 from text_processor import TextProcessor
 from sentence_chunker import SentenceChunker  
+from embeddings_manager import EmbeddingsManager  # ✅ NEW: Embeddings manager
 from pathlib import Path
 
 
@@ -24,10 +25,13 @@ def main():
         # 4️⃣ Initialize text processor
         text_processor = TextProcessor()
 
-        # 5️⃣ Initialize sentence chunker instead of char chunker
+        # 5️⃣ Initialize sentence chunker
         chunker = SentenceChunker(target_chunk_size=500, overlap_sentences=2)
 
-        # 6️⃣ For each new file → extract text → chunk
+        # 6️⃣ Initialize embeddings manager
+        embeddings_manager = EmbeddingsManager()
+
+        # 7️⃣ For each new file → extract text → chunk → embed
         for file_path_str in new_files:
             file_path = Path(file_path_str)
             extracted_text = text_processor.extract_text(file_path)
@@ -39,12 +43,14 @@ def main():
                 chunks = chunker.chunk_text(extracted_text)
                 print(f"🔹 Created {len(chunks)} sentence-based chunks for: {file_path.name}")
 
-                # 👉 Next: pass chunks to embeddings here
+                # ➡️ Add chunks to embeddings index
+                metadata = {"source_file": file_path.name}
+                embeddings_manager.add_chunks(chunks, metadata)
 
             else:
                 print(f"⚠️ No extractable text found in: {file_path.name}")
 
-    print("RAG pipeline extraction + sentence chunking step done.")
+    print("RAG pipeline extraction + chunking + embedding step done.")
 
 
 if __name__ == "__main__":
