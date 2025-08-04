@@ -2,7 +2,7 @@
 
 from drive_processor import GoogleDriveProcessor
 from text_processor import TextProcessor
-from chunker import Chunker
+from sentence_chunker import SentenceChunker  
 from pathlib import Path
 
 
@@ -24,8 +24,8 @@ def main():
         # 4️⃣ Initialize text processor
         text_processor = TextProcessor()
 
-        # 5️⃣ Initialize chunker
-        chunker = Chunker(chunk_size=500, chunk_overlap=50)
+        # 5️⃣ Initialize sentence chunker instead of char chunker
+        chunker = SentenceChunker(target_chunk_size=500, overlap_sentences=2)
 
         # 6️⃣ For each new file → extract text → chunk
         for file_path_str in new_files:
@@ -35,16 +35,16 @@ def main():
             if extracted_text.strip():
                 print(f"✅ Extracted {len(extracted_text)} characters from: {file_path.name}")
 
-                # ➡️ Chunk the text
+                # ➡️ Chunk by sentences
                 chunks = chunker.chunk_text(extracted_text)
-                print(f"🔹 Created {len(chunks)} chunks for: {file_path.name}")
+                print(f"🔹 Created {len(chunks)} sentence-based chunks for: {file_path.name}")
 
                 # 👉 Next: pass chunks to embeddings here
 
             else:
                 print(f"⚠️ No extractable text found in: {file_path.name}")
 
-    print("RAG pipeline extraction + chunking step done.")
+    print("RAG pipeline extraction + sentence chunking step done.")
 
 
 if __name__ == "__main__":
