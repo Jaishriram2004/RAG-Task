@@ -35,15 +35,17 @@ class RAGAgent:
         return docs
 
     def build_prompt(self, query, retrieved_docs):
-        """Combine retrieved chunks + user query into final prompt"""
         context = "\n\n".join([doc.page_content for doc in retrieved_docs])
         prompt = (
-            f"Use the following context to answer the question.\n\n"
+            f"Use the following context to answer the question accurately and concisely. "
+            f"If the answer is unknown, say 'I don't know.' "
+            f"Always end your answer with 'END OF ANSWER.'\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {query}\n\n"
             f"Answer:"
         )
         return prompt
+
 
     def ask(self, query):
         retrieved_docs = self.retrieve(query)
@@ -53,14 +55,17 @@ class RAGAgent:
             "model": self.ollama_model,
             "prompt": prompt,
             "options": {
-                "num_predict": 200
+                "num_predict": 250
             },
-            "stream": False
+            "stream": False,
+            "stop": ["END OF ANSWER"]
         }
 
         response = requests.post(self.ollama_url, json=payload)
         response.raise_for_status()
         answer = response.json()["response"]
+        answer = answer.replace("END OF ANSWER", "").strip()
 
-        return answer.strip(), retrieved_docs
+        return answer, retrieved_docs
+
 
